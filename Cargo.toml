@@ -1,0 +1,12 @@
+[package]
+name = "ynab-import"
+version = "0.1.0"
+edition = "2024"
+description = "Format copied bank statements as CSV for import to YNAB."
+readme = "README.md"
+repository = "https://github.com/JonasEngstrom/ynab-import"
+license = "MIT"
+keywords = ["bookkeeping", "accounting", "csv", "ynab", "budgeting"]
+categories = ["command-line-utilities", "finance", "mathematics"]
+
+[dependencies]

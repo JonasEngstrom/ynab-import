@@ -122,6 +122,15 @@ pub struct Date {
 }
 
 impl Date {
+    /// Returns a result. It is an `Ok(Date)` if the input date passes valid date checks. Otherwise an `Error` is returned.
+    /// 
+    /// ```
+    /// use ynab_import::date::Date;
+    /// 
+    /// let example_date = Date::new(1779, 7, 14).unwrap();
+    /// 
+    /// assert_eq!(format!("{}", example_date), "1779-07-14");
+    /// ```
     pub fn new(year: u16, month: u8, day: u8) -> Result<Self, Box<dyn Error>> {
         let date = Self { year: Year::new(year)?, month: Month::new(month)?, day: Day::new(day)? };
         match date.month.month {

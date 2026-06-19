@@ -3,7 +3,7 @@ use std::fmt;
 
 /// Indicates an attempt to create a year out of the range 0000 to 9999 inclusive.
 #[derive(Debug)]
-pub struct YearOutOfRangeError;
+struct YearOutOfRangeError;
 
 impl fmt::Display for YearOutOfRangeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -15,7 +15,7 @@ impl Error for YearOutOfRangeError {}
 
 /// Indicates an attempt to create a month out of the range 1 to 12 inclusive.
 #[derive(Debug)]
-pub struct MonthOutOfRangeError;
+struct MonthOutOfRangeError;
 
 impl fmt::Display for MonthOutOfRangeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -27,7 +27,7 @@ impl Error for MonthOutOfRangeError {}
 
 /// Indicates an attempt to create a day out of the range 1 to 31 inclusive or one that has fore days than an associated month, when creating a Date.
 #[derive(Debug)]
-pub struct DayOutOfRangeError;
+struct DayOutOfRangeError;
 
 impl fmt::Display for DayOutOfRangeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -38,7 +38,7 @@ impl fmt::Display for DayOutOfRangeError {
 impl Error for DayOutOfRangeError {}
 
 /// Stores a year between 0000 and 9999.
-pub struct Year {
+struct Year {
     year: u16,
 }
 
@@ -71,7 +71,7 @@ impl fmt::Display for Year {
 }
 
 /// Stores a month between 1 and 12.
-pub struct Month {
+struct Month {
     month: u8,
 }
 
@@ -93,7 +93,7 @@ impl fmt::Display for Month {
 }
 
 /// Stores a day between 1 and 31.
-pub struct Day {
+struct Day {
     day: u8,
 }
 

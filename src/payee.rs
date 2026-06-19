@@ -6,7 +6,15 @@ pub struct Payee{
 }
 
 impl Payee {
-    /// Returns an Option<Payee>, returning None if an empty string is passed.
+    /// Returns an `Option<Payee>`, returning None if an empty string is passed.
+    /// 
+    /// ```
+    /// use ynab_import::payee::Payee;
+    /// 
+    /// let example_payee = Payee::new("The Grocery Store".to_string()).unwrap();
+    /// 
+    /// assert_eq!(format!("{}", example_payee), "The Grocery Store");
+    /// ```
     pub fn new(payee: String) -> Option<Self> {
         match payee.as_str() {
             "" => None,
@@ -41,7 +49,7 @@ mod tests {
     #[test]
     fn payee_prints_correctly() -> Result<(), String> {
         let test_payee = Payee::new("Test payee.".to_string()).unwrap();
-        assert_eq!(format!("{}", test_payee), "Test payee.".to_string());
+        assert_eq!(format!("{}", test_payee), "Test payee.");
         Ok(())
     }
 }

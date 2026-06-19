@@ -3,7 +3,7 @@ use std::fmt;
 
 /// Indicates an attempt to create a year out of the range 0000 to 9999 inclusive.
 #[derive(Debug)]
-struct YearOutOfRangeError;
+pub struct YearOutOfRangeError;
 
 impl fmt::Display for YearOutOfRangeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -15,7 +15,7 @@ impl Error for YearOutOfRangeError {}
 
 /// Indicates an attempt to create a month out of the range 1 to 12 inclusive.
 #[derive(Debug)]
-struct MonthOutOfRangeError;
+pub struct MonthOutOfRangeError;
 
 impl fmt::Display for MonthOutOfRangeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -27,7 +27,7 @@ impl Error for MonthOutOfRangeError {}
 
 /// Indicates an attempt to create a day out of the range 1 to 31 inclusive or one that has fore days than an associated month, when creating a Date.
 #[derive(Debug)]
-struct DayOutOfRangeError;
+pub struct DayOutOfRangeError;
 
 impl fmt::Display for DayOutOfRangeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -38,7 +38,7 @@ impl fmt::Display for DayOutOfRangeError {
 impl Error for DayOutOfRangeError {}
 
 /// Stores a year between 0000 and 9999.
-struct Year {
+pub struct Year {
     year: u16,
 }
 
@@ -71,7 +71,7 @@ impl fmt::Display for Year {
 }
 
 /// Stores a month between 1 and 12.
-struct Month {
+pub struct Month {
     month: u8,
 }
 
@@ -93,7 +93,7 @@ impl fmt::Display for Month {
 }
 
 /// Stores a day between 1 and 31.
-struct Day {
+pub struct Day {
     day: u8,
 }
 
@@ -115,7 +115,7 @@ impl fmt::Display for Day {
 }
 
 /// Stores a date between 0000-01-01 and 9999-12-31.
-struct Date {
+pub struct Date {
     year: Year,
     month: Month,
     day: Day,
@@ -128,18 +128,18 @@ impl Date {
             1 | 3 | 5 | 7 | 8 | 10 | 12 => Ok(date),
             4 | 6 | 9 | 11 => {
                 match date.day.day {
-                    day @ 1 ..= 30 => Ok(date),
+                    _day @ 1 ..= 30 => Ok(date),
                     _ => Err(Box::new(DayOutOfRangeError)),
                 }
             },
             2 => {
                 match date.year.is_leap_year() {
                     true => match date.day.day {
-                        day @ 1 ..= 29 => Ok(date),
+                        _day @ 1 ..= 29 => Ok(date),
                         _ => Err(Box::new(DayOutOfRangeError)),
                     },
                     false => match date.day.day {
-                        day @ 1 ..= 28 => Ok(date),
+                        _day @ 1 ..= 28 => Ok(date),
                         _ => Err(Box::new(DayOutOfRangeError)),
                     },
                 }
@@ -328,6 +328,175 @@ mod tests {
     #[test]
     fn date_prints_in_correct_iso_format_with_leading_zeros() -> Result<(), Box<dyn Error>> {
         assert_eq!(format!("{}", Date::new(995, 8, 3)?), "0995-08-03");
+        Ok(())
+    }
+
+    #[test]
+    fn january_date_can_be_created_correctly() -> Result<(), Box<dyn Error>> {
+        Date::new(1995, 01, 31)?;
+        Ok(())
+    }
+
+    #[test]
+    fn february_non_leap_year_date_can_be_created_correctly() -> Result<(), Box<dyn Error>> {
+        Date::new(1995, 02, 28)?;
+        Ok(())
+    }
+
+    #[test]
+    fn february_leap_year_date_can_be_created_correctly() -> Result<(), Box<dyn Error>> {
+        Date::new(1996, 02, 29)?;
+        Ok(())
+    }
+
+    #[test]
+    fn march_date_can_be_created_correctly() -> Result<(), Box<dyn Error>> {
+        Date::new(1995, 03, 31)?;
+        Ok(())
+    }
+
+    #[test]
+    fn april_date_can_be_created_correctly() -> Result<(), Box<dyn Error>> {
+        Date::new(1995, 04, 30)?;
+        Ok(())
+    }
+
+    #[test]
+    fn may_date_can_be_created_correctly() -> Result<(), Box<dyn Error>> {
+        Date::new(1995, 05, 31)?;
+        Ok(())
+    }
+
+    #[test]
+    fn june_date_can_be_created_correctly() -> Result<(), Box<dyn Error>> {
+        Date::new(1995, 06, 30)?;
+        Ok(())
+    }
+
+    #[test]
+    fn july_date_can_be_created_correctly() -> Result<(), Box<dyn Error>> {
+        Date::new(1995, 07, 31)?;
+        Ok(())
+    }
+
+    #[test]
+    fn august_date_can_be_created_correctly() -> Result<(), Box<dyn Error>> {
+        Date::new(1995, 08, 31)?;
+        Ok(())
+    }
+
+    #[test]
+    fn september_date_can_be_created_correctly() -> Result<(), Box<dyn Error>> {
+        Date::new(1995, 09, 30)?;
+        Ok(())
+    }
+
+    #[test]
+    fn october_date_can_be_created_correctly() -> Result<(), Box<dyn Error>> {
+        Date::new(1995, 10, 31)?;
+        Ok(())
+    }
+
+    #[test]
+    fn november_date_can_be_created_correctly() -> Result<(), Box<dyn Error>> {
+        Date::new(1995, 11, 30)?;
+        Ok(())
+    }
+
+    #[test]
+    fn december_date_can_be_created_correctly() -> Result<(), Box<dyn Error>> {
+        Date::new(1995, 12, 31)?;
+        Ok(())
+    }
+
+    #[test]
+    fn january_date_errors_correctly() -> Result<(), Box<dyn Error>> {
+        let test_date = Date::new(1995, 01, 32);
+        assert!(test_date.err().is_some_and(|e| e.is::<DayOutOfRangeError>()));
+        Ok(())
+    }
+
+    #[test]
+    fn leap_year_february_date_errors_correctly() -> Result<(), Box<dyn Error>> {
+        let test_date = Date::new(1996, 2, 30);
+        assert!(test_date.err().is_some_and(|e| e.is::<DayOutOfRangeError>()));
+        Ok(())
+    }
+
+    #[test]
+    fn non_leap_year_february_date_errors_correctly() -> Result<(), Box<dyn Error>> {
+        let test_date = Date::new(1995, 2, 29);
+        assert!(test_date.err().is_some_and(|e| e.is::<DayOutOfRangeError>()));
+        Ok(())
+    }
+
+    #[test]
+    fn march_date_errors_correctly() -> Result<(), Box<dyn Error>> {
+        let test_date = Date::new(1995, 3, 32);
+        assert!(test_date.err().is_some_and(|e| e.is::<DayOutOfRangeError>()));
+        Ok(())
+    }
+
+    #[test]
+    fn april_date_errors_correctly() -> Result<(), Box<dyn Error>> {
+        let test_date = Date::new(1995, 4, 31);
+        assert!(test_date.err().is_some_and(|e| e.is::<DayOutOfRangeError>()));
+        Ok(())
+    }
+
+    #[test]
+    fn may_date_errors_correctly() -> Result<(), Box<dyn Error>> {
+        let test_date = Date::new(1995, 5, 32);
+        assert!(test_date.err().is_some_and(|e| e.is::<DayOutOfRangeError>()));
+        Ok(())
+    }
+
+    #[test]
+    fn june_date_errors_correctly() -> Result<(), Box<dyn Error>> {
+        let test_date = Date::new(1995, 6, 31);
+        assert!(test_date.err().is_some_and(|e| e.is::<DayOutOfRangeError>()));
+        Ok(())
+    }
+
+    #[test]
+    fn july_date_errors_correctly() -> Result<(), Box<dyn Error>> {
+        let test_date = Date::new(1995, 7, 32);
+        assert!(test_date.err().is_some_and(|e| e.is::<DayOutOfRangeError>()));
+        Ok(())
+    }
+
+    #[test]
+    fn august_date_errors_correctly() -> Result<(), Box<dyn Error>> {
+        let test_date = Date::new(1995, 8, 32);
+        assert!(test_date.err().is_some_and(|e| e.is::<DayOutOfRangeError>()));
+        Ok(())
+    }
+
+    #[test]
+    fn september_date_errors_correctly() -> Result<(), Box<dyn Error>> {
+        let test_date = Date::new(1995, 9, 31);
+        assert!(test_date.err().is_some_and(|e| e.is::<DayOutOfRangeError>()));
+        Ok(())
+    }
+
+    #[test]
+    fn october_date_errors_correctly() -> Result<(), Box<dyn Error>> {
+        let test_date = Date::new(1995, 10, 32);
+        assert!(test_date.err().is_some_and(|e| e.is::<DayOutOfRangeError>()));
+        Ok(())
+    }
+
+    #[test]
+    fn november_date_errors_correctly() -> Result<(), Box<dyn Error>> {
+        let test_date = Date::new(1995, 11, 31);
+        assert!(test_date.err().is_some_and(|e| e.is::<DayOutOfRangeError>()));
+        Ok(())
+    }
+
+    #[test]
+    fn december_date_errors_correctly() -> Result<(), Box<dyn Error>> {
+        let test_date = Date::new(1995, 12, 32);
+        assert!(test_date.err().is_some_and(|e| e.is::<DayOutOfRangeError>()));
         Ok(())
     }
 }

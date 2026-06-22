@@ -53,13 +53,7 @@ impl Year {
 
     /// Returns true if the year is a leap year. Otherwise returns false.
     pub fn is_leap_year(&self) -> bool {
-        match (self.year % 4 == 0, self.year % 100 == 0, self.year % 400 == 0) {
-            (true, true, true) => true,
-            (true, true, false) => false,
-            (true, false, false) => true,
-            (false, false, false) => false,
-            _ => unreachable!("All possible years should be handled by previous match arms."),
-        }
+        self.year % 4 == 0 && (self.year % 100 != 0 || self.year % 400 == 0)
     }
 }
 
@@ -506,6 +500,24 @@ mod tests {
     fn december_date_errors_correctly() -> Result<(), Box<dyn Error>> {
         let test_date = Date::new(1995, 12, 32);
         assert!(test_date.err().is_some_and(|e| e.is::<DayOutOfRangeError>()));
+        Ok(())
+    }
+
+    #[test]
+    fn year_out_of_range_error_prints_correctly() -> Result<(), String> {
+        assert_eq!(format!("{}", YearOutOfRangeError), "Year needs to be in range 0000 to 9999.");
+        Ok(())
+    }
+
+    #[test]
+    fn month_out_of_range_error_prints_correctly() -> Result<(), String> {
+        assert_eq!(format!("{}", MonthOutOfRangeError), "Month needs to be in range 1 to 12.");
+        Ok(())
+    }
+
+    #[test]
+    fn day_out_of_range_error_prints_correctly() -> Result<(), String> {
+        assert_eq!(format!("{}", DayOutOfRangeError), "Day needs to be in range 1 to 31.");
         Ok(())
     }
 }

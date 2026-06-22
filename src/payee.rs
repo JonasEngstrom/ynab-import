@@ -6,7 +6,7 @@ pub struct Payee{
 }
 
 impl Payee {
-    /// Returns an `Option<Payee>`, returning None if an empty string is passed.
+    /// Returns an `Option<Payee>`, returning `None` if an empty string is passed.
     /// 
     /// ```
     /// use ynab_import::payee::Payee;

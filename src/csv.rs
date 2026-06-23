@@ -9,21 +9,21 @@ use std::fmt;
 const HEADER_ROW: &str = "\"Date\",\"Payee\",\"Memo\",\"Outflow\",\"Inflow\"";
 
 /// Stores data about a transacton for import into YNAB.
-pub struct ContentRow {
+pub struct Transaction {
     date: Date,
     payee: Option<Payee>,
     memo: Option<Memo>,
     flow: Flow,
 }
 
-impl ContentRow {
-    /// Returns a ContentRow, with data about a transaction for import into YNAB.
+impl Transaction {
+    /// Returns a Transaction, with data necessary for creation of a CSV row for import into YNAB.
     pub fn new(date: Date, payee: Option<Payee>, memo: Option<Memo>, flow: Flow) -> Self {
         Self { date, payee, memo, flow }
     }
 }
 
-impl fmt::Display for ContentRow {
+impl fmt::Display for Transaction {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
@@ -52,7 +52,7 @@ mod tests {
         let test_payee = Payee::new("The Store".to_string()).unwrap();
         let test_memo = Memo::new("Groceries".to_string()).unwrap();
         let test_flow = Flow::from_amount(-100f64);
-        let test_content_row = ContentRow::new(test_date, Some(test_payee), Some(test_memo), test_flow);
+        let test_content_row = Transaction::new(test_date, Some(test_payee), Some(test_memo), test_flow);
 
         assert_eq!(format!("{}", test_content_row), "\"1995-03-08\",\"The Store\",\"Groceries\",\"100.00\",\"\"");
 
@@ -63,7 +63,7 @@ mod tests {
     fn creation_of_content_row_with_nones_works() -> Result<(), String> {
         let test_date = Date::new(1995, 3, 8).unwrap();
         let test_flow = Flow::from_amount(100f64);
-        let test_content_row = ContentRow::new(test_date, None, None, test_flow);
+        let test_content_row = Transaction::new(test_date, None, None, test_flow);
 
         assert_eq!(format!("{}", test_content_row), "\"1995-03-08\",\"\",\"\",\"\",\"100.00\"");
 

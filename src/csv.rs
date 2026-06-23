@@ -65,6 +65,30 @@ impl TransactionList {
     }
 }
 
+/// Output a TransactionList in a format that is compatible with import into YNAB.
+impl fmt::Display for TransactionList {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut output_string = String::new();
+
+        for header in HEADER_ROW {
+            output_string.push_str("\"");
+            output_string.push_str(header);
+            output_string.push_str("\",");
+        }
+
+        output_string.pop();
+        output_string.push_str("\n");
+
+        for transaction in &self.transaction_list {
+            output_string.push_str(format!("{}\n", transaction).as_str());
+        }
+
+        output_string.pop();
+
+        write!(f, "{}", output_string)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -102,7 +126,7 @@ mod tests {
         Ok(())
     }
 
-        #[test]
+    #[test]
     fn pushing_to_transaction_list_works() -> Result<(), String> {
         let test_date = Date::new(1995, 3, 8).unwrap();
         let test_payee = Payee::new("The Store".to_string()).unwrap();
@@ -115,6 +139,30 @@ mod tests {
         test_transaction_list.push(test_transaction);
 
         assert_eq!(format!("{}", test_transaction_list.transaction_list.first().unwrap()), "\"1995-03-08\",\"The Store\",\"Groceries\",\"100.00\",\"\"");
+
+        Ok(())
+    }
+
+    #[test]
+    fn printing_transaction_list_works() -> Result<(), String> {
+        let test_date_one = Date::new(1995, 3, 8).unwrap();
+        let test_payee_one = Payee::new("The Store".to_string()).unwrap();
+        let test_memo_one = Memo::new("Groceries".to_string()).unwrap();
+        let test_flow_one = Flow::from_amount(-100f64);
+        let test_transaction_one = Transaction::new(test_date_one, Some(test_payee_one), Some(test_memo_one), test_flow_one);
+
+        let test_date_two = Date::new(2011, 06, 22).unwrap();
+        let test_payee_two = Payee::new("Another Store".to_string()).unwrap();
+        let test_memo_two = Memo::new("Stuff".to_string()).unwrap();
+        let test_flow_two = Flow::from_amount(100f64);
+        let test_transaction_two = Transaction::new(test_date_two, Some(test_payee_two), Some(test_memo_two), test_flow_two);
+        
+        let mut test_transaction_list = TransactionList::new();
+
+        test_transaction_list.push(test_transaction_one);
+        test_transaction_list.push(test_transaction_two);
+
+        assert_eq!(format!("{}", test_transaction_list), "\"Date\",\"Payee\",\"Memo\",\"Outflow\",\"Inflow\"\n\"1995-03-08\",\"The Store\",\"Groceries\",\"100.00\",\"\"\n\"2011-06-22\",\"Another Store\",\"Stuff\",\"\",\"100.00\"");
 
         Ok(())
     }

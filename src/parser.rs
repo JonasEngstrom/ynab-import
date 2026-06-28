@@ -395,4 +395,338 @@ GENERIC.SE
 
         Ok(())
     }
+
+    #[test]
+    fn danske_bank_parsing_works_without_memo() -> Result<(), String> {
+        let danske_bank_text_one = r#"Enter start date yyyy.mm.dd REB1637Enter end date yyyy.mm.dd REB1638
+Framtida
+JuniMajAprilMarsFebruariJanuari2026DecemberNovemberOktoberSeptemberAugustiJuliJuniMaj
+Tidigare
+Kontoutdrag
+
+
+Visa kategorier
+Juni 2026
+
+Datum		 	Text		Belopp	 	 		Saldo		Avstämt
+2026-06-25			
+Foo Bar ))))
+-41,45
+ 
+ 		62.930,69		
+
+2026-06-24			
+bar work
+7.650,02
+ 
+ 		62.972,14		
+
+2026-06-22			
+Foo ))))
+-170,00
+ 
+ 		55.322,12		
+
+2026-06-22			
+GIRAFFE
+-322,05
+ 
+ 		55.492,12		
+
+2026-06-08			
+Överföring
+11.524,85
+ 
+ 		55.814,17		
+
+2026-06-08			
+City ))))
+-69,50
+ 
+ 		44.289,32		
+
+2026-06-08			
+Virta EV Charge Proc
+-200,00
+ 
+ 		44.358,82		
+
+2026-06-08			
+Sl App
+-43,00
+ 
+ 		44.558,82		
+
+2026-06-08			
+Sl App
+-43,00
+ 
+ 		44.601,82		
+
+2026-06-08			
+GENERIC.SE
+-566,26
+ 
+ 		44.644,82		
+
+2026-06-05			
+Sl App
+-43,00
+ 
+ 		45.211,08		
+
+2026-06-05			
+Sl App
+-43,00
+ 
+ 		45.254,08		
+
+2026-06-02		 	
+ENERGI
+-393,00
+ 
+ 		45.297,08		
+
+2026-06-01			
+Kronans AB ))))
+-195,00
+ 
+ 		45.690,08		
+
+Maj 2026
+2026-05-29		 	
+232
+-13.439,00
+ 
+ 		45.885,08		
+
+2026-05-28		 	
+SVERKER
+-609,00
+ 
+ 		59.324,08		
+
+2026-05-28		 	
+BER AB
+-247,00
+ 
+ 		59.933,08		
+
+2026-05-26			
+Virta EV Charge Proc
+-200,00
+ 
+ 		60.180,08		
+
+2026-05-25			
+Överföring
+12.239,68
+ 
+ 		60.380,08		
+
+2026-05-25			
+Sl App
+-40,00
+ 
+ 		48.140,40		
+
+2026-05-25			
+Tag
+-120,00
+ 
+ 		48.180,40		
+"#;
+        let expected_danske_bank_result_one = r#""Date","Payee","Memo","Outflow","Inflow"
+"2026-06-25","Foo Bar","","41.45",""
+"2026-06-24","bar work","","","7650.02"
+"2026-06-22","Foo","","170.00",""
+"2026-06-22","GIRAFFE","","322.05",""
+"2026-06-08","Överföring","","","11524.85"
+"2026-06-08","City","","69.50",""
+"2026-06-08","Virta EV Charge Proc","","200.00",""
+"2026-06-08","Sl App","","43.00",""
+"2026-06-08","Sl App","","43.00",""
+"2026-06-08","GENERIC.SE","","566.26",""
+"2026-06-05","Sl App","","43.00",""
+"2026-06-05","Sl App","","43.00",""
+"2026-06-02","ENERGI","","393.00",""
+"2026-06-01","Kronans AB","","195.00",""
+"2026-05-29","232","","13439.00",""
+"2026-05-28","SVERKER","","609.00",""
+"2026-05-28","BER AB","","247.00",""
+"2026-05-26","Virta EV Charge Proc","","200.00",""
+"2026-05-25","Överföring","","","12239.68"
+"2026-05-25","Sl App","","40.00",""
+"2026-05-25","Tag","","120.00","""#;
+        let danske_bank_text_two = r#"2026-06-22			
+Bar ))))
+-170,00
+ 
+ 		55.322,12		
+
+2026-06-22			
+GIRAFFE
+-322,05
+ 
+ 		55.492,12		
+
+2026-06-08			
+Överföring
+11.524,85
+ 
+ 		55.814,17		
+
+2026-06-08			
+City ))))
+-69,50
+ 
+ 		44.289,32		
+
+2026-06-08			
+Virta EV Charge Proc
+-200,00
+ 
+ 		44.358,82		
+
+2026-06-08			
+Sl App
+-43,00
+ 
+ 		44.558,82		
+
+2026-06-08			
+Sl App
+-43,00
+ 
+ 		44.601,82		
+
+2026-06-08			
+GENERIC.SE
+-566,26
+ 
+ 		44.644,82		
+
+2026-06-05			
+Sl App
+-43,00
+ 
+ 		45.211,08		
+
+2026-06-05			
+Sl App
+-43,00
+ 
+ 		45.254,08		
+
+2026-06-02		 	
+ENERGI
+-393,00
+ 
+ 		45.297,08		
+"#;
+        let expected_danske_bank_result_two = r#""Date","Payee","Memo","Outflow","Inflow"
+"2026-06-22","Bar","","170.00",""
+"2026-06-22","GIRAFFE","","322.05",""
+"2026-06-08","Överföring","","","11524.85"
+"2026-06-08","City","","69.50",""
+"2026-06-08","Virta EV Charge Proc","","200.00",""
+"2026-06-08","Sl App","","43.00",""
+"2026-06-08","Sl App","","43.00",""
+"2026-06-08","GENERIC.SE","","566.26",""
+"2026-06-05","Sl App","","43.00",""
+"2026-06-05","Sl App","","43.00",""
+"2026-06-02","ENERGI","","393.00","""#;
+        let danske_bank_text_three = r#"Juni 2026
+
+Datum		 	Text		Belopp	 	 		Saldo		Avstämt
+2026-06-25			
+Foo Bar ))))
+-41,45
+ 
+ 		62.930,69		
+
+2026-06-24			
+bar work
+7.650,02
+ 
+ 		62.972,14		
+
+2026-06-22			
+Bar ))))
+-170,00
+ 
+ 		55.322,12		
+
+2026-06-22			
+GIRAFFE
+-322,05
+ 
+ 		55.492,12		
+
+2026-06-08			
+Överföring
+11.524,85
+ 
+ 		55.814,17		
+
+2026-06-08			
+City ))))
+-69,50
+ 
+ 		44.289,32		
+
+2026-06-08			
+Virta EV Charge Proc
+-200,00
+ 
+ 		44.358,82		
+
+2026-06-08			
+Sl App
+-43,00
+ 
+ 		44.558,82		
+
+2026-06-08			
+Sl App
+-43,00
+ 
+ 		44.601,82		
+
+2026-06-08			
+GENERIC.SE
+-566,26
+ 
+ 		44.644,82		
+"#;
+        let expected_danske_bank_result_three = r#""Date","Payee","Memo","Outflow","Inflow"
+"2026-06-25","Foo Bar","","41.45",""
+"2026-06-24","bar work","","","7650.02"
+"2026-06-22","Bar","","170.00",""
+"2026-06-22","GIRAFFE","","322.05",""
+"2026-06-08","Överföring","","","11524.85"
+"2026-06-08","City","","69.50",""
+"2026-06-08","Virta EV Charge Proc","","200.00",""
+"2026-06-08","Sl App","","43.00",""
+"2026-06-08","Sl App","","43.00",""
+"2026-06-08","GENERIC.SE","","566.26","""#;
+
+        let danske_bank_parser = Parser::DanskeBank;
+
+        let danske_bank_parsed_text_one = danske_bank_parser
+            .parse(danske_bank_text_one, None)
+            .unwrap();
+        let danske_bank_parsed_text_two = danske_bank_parser
+            .parse(danske_bank_text_two, None)
+            .unwrap();
+        let danske_bank_parsed_text_three = danske_bank_parser
+            .parse(danske_bank_text_three, None)
+            .unwrap();
+        
+        assert_eq!(danske_bank_parsed_text_one, expected_danske_bank_result_one);
+        assert_eq!(danske_bank_parsed_text_two, expected_danske_bank_result_two);
+        assert_eq!(danske_bank_parsed_text_three, expected_danske_bank_result_three);
+
+        Ok(())
+    }
 }

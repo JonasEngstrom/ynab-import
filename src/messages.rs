@@ -1,0 +1,1 @@
+pub const UNABLE_TO_PARSE_REGEX: &str = "Unable to parse regular expression. This is not a user fixable error. It needs to be fixed in the source code. Please create an issue on the YNAB Import GitHub repository at https://github.com/JonasEngstrom/ynab-import/issues and describe what you were doing when this problem arose. Sorry for any inconvenience.";

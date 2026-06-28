@@ -10,3 +10,4 @@ keywords = ["bookkeeping", "accounting", "csv", "ynab", "budgeting"]
 categories = ["command-line-utilities", "finance", "mathematics"]
 
 [dependencies]
+regex = "1.12.4"

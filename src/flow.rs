@@ -1,3 +1,7 @@
+//! # Store Inflows and Outflows
+//! 
+//! This module handles creating and storing inflow and outflow pairs.
+
 use std::fmt;
 
 /// Stores an outflow/inflow pair.

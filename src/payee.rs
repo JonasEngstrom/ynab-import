@@ -1,3 +1,7 @@
+//! # Store Payees
+//! 
+//! This module handles storage of payees for import into YNAB.
+
 use std::fmt;
 
 /// Stores a payee.

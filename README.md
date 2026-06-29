@@ -16,7 +16,8 @@ Start by selecting and copying the bank statement you want to import. On macOS y
 pbpaste | ynab-import --bank danske-bank > ynab_file.csv
 ```
 
-> **Note!** Instead of piping, the input data can instead be pasted as an argument after any options provided.
+> [!NOTE]
+> Instead of piping, the input data can instead be pasted as an argument after any options provided.
 
 ## Supported Banks
 

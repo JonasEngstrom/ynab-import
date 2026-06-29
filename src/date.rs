@@ -1,3 +1,7 @@
+//! # Store a Date
+//! 
+//! This modules handles validating and storing dates.
+
 use std::error::Error;
 use std::fmt;
 

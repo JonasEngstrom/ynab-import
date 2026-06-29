@@ -1,3 +1,7 @@
+//! # Parsers
+//! 
+//! This module stores the parsers for the various banks.
+
 use regex;
 use std::error;
 use std::process::exit;
@@ -5,7 +9,7 @@ use crate::*;
 
 /// Parses different bank input formats.
 pub enum Parser {
-    /// Parses data copied and pasted from the Swedish branch of Danske Bank’s Hembanken’s web interface.
+    /// Parses data copied and pasted from the Swedish branch of Danske Bank’s (Danske Bank A/S, Danmark, Sverige Filial) Hembanken’s web interface.
     DanskeBank,
 }
 
@@ -18,6 +22,22 @@ impl Parser {
     }
 
     /// Parse data from the desired bank. Returns a string in CSV format, for import into YNAB.
+    /// 
+    /// ```
+    /// use ynab_import::parser::Parser;
+    /// 
+    /// let text_to_parse = r#"2026-06-25			
+    /// Foo Bar ))))
+    /// -41,45
+    ///  
+    ///  		62.930,69		
+    /// 
+    /// 2026-06-24"#;
+    /// 
+    /// let parsed_text = Parser::DanskeBank.parse(&text_to_parse, None).unwrap();
+    /// 
+    /// assert_eq!(parsed_text, "\"Date\",\"Payee\",\"Memo\",\"Outflow\",\"Inflow\"\n\"2026-06-25\",\"Foo Bar\",\"\",\"41.45\",\"\"")
+    /// ```
     pub fn parse(&self, text_to_parse: &str, memo: Option<&str>) -> Result<String, Box<dyn error::Error>> {
         let regex = match self.regex() {
             Ok(regex) => regex,

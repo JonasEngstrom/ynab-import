@@ -1,3 +1,7 @@
+//! # Comma Separated Values
+//! 
+//! This module contains logic for working with CSV output.
+
 use crate::date::Date;
 use crate::payee::Payee;
 use crate::memo::Memo;
@@ -24,6 +28,18 @@ pub struct Transaction {
 
 impl Transaction {
     /// Returns a Transaction, with data necessary for creation of [a CSV row for import into YNAB](https://support.ynab.com/en_us/formatting-a-csv-file-an-overview-BJvczkuRq).
+    /// 
+    /// ```
+    /// use ynab_import::*;
+    /// 
+    /// let date = date::Date::new(1995, 3, 8).unwrap();
+    /// let payee = payee::Payee::new("The Store".to_string()).unwrap();
+    /// let memo = memo::Memo::new("Groceries".to_string()).unwrap();
+    /// let flow = flow::Flow::from_amount(-100f64);
+    /// let transaction = csv::Transaction::new(date, Some(payee), Some(memo), flow);
+    /// 
+    /// assert_eq!(format!("{}", transaction), "\"1995-03-08\",\"The Store\",\"Groceries\",\"100.00\",\"\"");
+    /// ```
     pub fn new(date: Date, payee: Option<Payee>, memo: Option<Memo>, flow: Flow) -> Self {
         Self { date, payee, memo, flow }
     }
@@ -55,11 +71,31 @@ pub struct TransactionList {
 
 impl TransactionList {
     /// Returns an empty TransactionList.
+    /// 
+    /// ```
+    /// use ynab_import::csv::TransactionList;
+    /// 
+    /// let transaction_list = TransactionList::new();
+    /// ```
     pub fn new() -> Self {
         Self { transaction_list: Vec::<Transaction>::new() }
     }
 
     /// Adds a Transaction to a TransactionList.
+    /// 
+    /// ```
+    /// use ynab_import::*;
+    /// 
+    /// let date = date::Date::new(1995, 3, 8).unwrap();
+    /// let payee = payee::Payee::new("The Store".to_string()).unwrap();
+    /// let memo = memo::Memo::new("Groceries".to_string()).unwrap();
+    /// let flow = flow::Flow::from_amount(-100f64);
+    /// let transaction = csv::Transaction::new(date, Some(payee), Some(memo), flow);
+    /// 
+    /// let mut transaction_list = csv::TransactionList::new();
+    /// 
+    /// transaction_list.push(transaction);
+    /// ```
     pub fn push(&mut self, transaction: Transaction) -> () {
         self.transaction_list.push(transaction);
     }

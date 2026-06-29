@@ -1,3 +1,7 @@
+//! # Command Line Interface
+//! 
+//! This module contains the implementation of the command line interface and the main program logic.
+
 use clap::Parser;
 use std::io::{ Read, IsTerminal };
 use crate::messages;
@@ -20,6 +24,14 @@ struct Arguments {
 }
 
 /// Run main program logic.
+/// 
+/// ```no_run
+/// use ynab_import::cli::run;
+/// 
+/// fn main() {
+///     run();
+/// }
+/// ```
 pub fn run() -> () {
     let arguments = Arguments::parse();
 

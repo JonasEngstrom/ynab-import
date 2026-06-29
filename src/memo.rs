@@ -1,3 +1,7 @@
+//! # Store Memos
+//! 
+//! This module handles storage of memos for import into YNAB.
+
 use std::fmt;
 
 /// Stores a memo.

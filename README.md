@@ -17,7 +17,7 @@ pbpaste | ynab-import --bank danske-bank > ynab_file.csv
 ```
 
 > [!NOTE]
-> Instead of piping, the input data can instead be pasted as an argument after any options provided.
+> Instead of piping, the input data can be pasted as an argument after any options provided.
 
 ## Supported Banks
 

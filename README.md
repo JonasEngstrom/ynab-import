@@ -10,7 +10,7 @@ This crate was made to speed up data entry into YNAB. It is built on a python sc
 
 ## Usage
 
-Start by selecting and copying the bank statement you want to import. On macOS you can then pipe the data to this crate by using `pbpaste` in the termina. On other systems the command might be different, but you can also paste to a file that you then pipe into the program.
+Start by selecting and copying the bank statement you want to import. On macOS you can then pipe the data to this crate by using `pbpaste` in the terminal. On other systems the command might be different, but you can also paste to a file that you then pipe into the program.
 
 ```bash
 pbpaste | ynab-import --bank danske-bank > ynab_file.csv
@@ -25,6 +25,7 @@ To pick a bank, use the option `--bank` or `-b`. Banks also have abbreviations.
 
 |Bank|Option|Abbreviation|
 |-|-|-|
+|Avanza Bank Holding|`avanza`|`a`|
 |Danske Bank, Sverige Filial|`danske-bank`|`db`|
 
 ## Getting Help

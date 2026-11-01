@@ -14,7 +14,7 @@ struct Arguments {
     /// Output from the bank to be formatted into CSV format for import into YNAB. If argument is not provided, data is read from stdin instead, to enable piping into the program. Note that this means that if this argument is provided any pipes are ignored.
     text_to_parse: Option<String>,
 
-    /// Name of bank from which data were copied. Supported options are 'danske-bank'/'db' (data copied from Danske Bank A/S, Danmark, Sverige Filial’s Hembanken)
+    /// Name of bank from which data were copied. Supported options are 'avanza'/'a' (data copied from Avanza Bank Holding’s web interface), and 'danske-bank'/'db' (data copied from Danske Bank A/S, Danmark, Sverige Filial’s Hembanken)
     #[arg(short, long, value_name = "BANK NAME")]
     bank_name: String,
 

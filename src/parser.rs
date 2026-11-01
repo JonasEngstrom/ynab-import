@@ -11,6 +11,8 @@ use crate::*;
 pub enum Parser {
     /// Parses data copied and pasted from the Swedish branch of Danske Bank’s (Danske Bank A/S, Danmark, Sverige Filial) Hembanken’s web interface.
     DanskeBank,
+    /// Parses data copied from the Avanza Bank Holding web interface.
+    Avanza,
 }
 
 impl Parser {
@@ -18,6 +20,7 @@ impl Parser {
     fn regex(&self) -> Result<regex::Regex, regex::Error> {
         match self {
             Self::DanskeBank => regex::Regex::new(r"(?m)^(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})[ \t]*\r?\n[ \t]*(?<merchant>[^\r\n]+?)(?:[ \t]+\){4})?[ \t]*\r?\n[ \t]*(?<amount>[+-]?(?:\d+|\d{1,3}(?:\.\d{3})+),\d{2})"),
+            Self::Avanza => regex::Regex::new(r"(?m)^(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})[ \t]*\r?\n(?:[ \t]*\r?\n)*[ \t]*\S[^\r\n]*\r?\n(?:[ \t]*\r?\n)*[ \t]*(?<merchant>[^\t\r\n]+)\t[^\t\r\n]*\t[^\t\r\n]*\t[^\t\r\n]*\t(?<amount>[+−]?(?:\d+|\d{1,3}(?: \d{3})+),\d{2}) SEK"),
         }
     }
 
@@ -55,6 +58,8 @@ impl Parser {
             let day = &capture["day"].parse::<u8>()?;
             let merchant = &capture["merchant"];
             let amount = &capture["amount"]
+                .replace("−", "-")
+                .replace(" ", "")
                 .replace(".", "")
                 .replace(",", ".")
                 .parse::<f64>()?;
@@ -746,6 +751,498 @@ GENERIC.SE
         assert_eq!(danske_bank_parsed_text_one, expected_danske_bank_result_one);
         assert_eq!(danske_bank_parsed_text_two, expected_danske_bank_result_two);
         assert_eq!(danske_bank_parsed_text_three, expected_danske_bank_result_three);
+
+        Ok(())
+    }
+
+    #[test]
+    fn avanza_parsing_works_with_memo() -> Result<(), String> {
+        let avanza_text_one = r#"Genomförda transaktioner
+
+Datum
+
+Konto
+
+Transaktionstyp
+
+Värdepapper/Beskrivning
+
+Antal
+
+Kurs
+
+Belopp
+Nota	Mer
+2026-08-28	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,97 SEK	
+2026-08-27	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,52 SEK	
+2026-08-26	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,95 SEK	
+2026-08-25	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,69 SEK	
+2026-08-24	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,97 SEK	
+2026-08-21	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,79 SEK	
+2026-08-20	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,94 SEK	
+2026-08-17	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−100 000,02 SEK	
+2026-08-17	
+
+Lgh
+
+Insättning		—	—	100 000,00 SEK	
+2026-08-03	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−13 364,25 SEK	
+2026-08-03	
+
+Lgh
+
+Insättning		—	—	21 700,00 SEK	
+2026-07-31	
+
+Lgh
+
+Utlåningsränta		—	—	−8 335,68 SEK	
+2026-07-07	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−21 837,26 SEK	
+"#;
+        let expected_avanza_result_one = r#""Date","Payee","Memo","Outflow","Inflow"
+"2026-08-28","Överföring till ISK/KF-depån","A short memo","9999.97",""
+"2026-08-27","Överföring till ISK/KF-depån","A short memo","9999.52",""
+"2026-08-26","Överföring till ISK/KF-depån","A short memo","9999.95",""
+"2026-08-25","Överföring till ISK/KF-depån","A short memo","9999.69",""
+"2026-08-24","Överföring till ISK/KF-depån","A short memo","9999.97",""
+"2026-08-21","Överföring till ISK/KF-depån","A short memo","9999.79",""
+"2026-08-20","Överföring till ISK/KF-depån","A short memo","9999.94",""
+"2026-08-17","Överföring till ISK/KF-depån","A short memo","100000.02",""
+"2026-08-17","Insättning","A short memo","","100000.00"
+"2026-08-03","Överföring till ISK/KF-depån","A short memo","13364.25",""
+"2026-08-03","Insättning","A short memo","","21700.00"
+"2026-07-31","Utlåningsränta","A short memo","8335.68",""
+"2026-07-07","Överföring till ISK/KF-depån","A short memo","21837.26","""#;
+        let avanza_text_two = r#"2026-08-27	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,52 SEK	
+2026-08-26	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,95 SEK	
+2026-08-25	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,69 SEK	
+2026-08-24	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,97 SEK	
+2026-08-21	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,79 SEK	
+2026-08-20	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,94 SEK	
+2026-08-17	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−100 000,02 SEK	
+2026-08-17	
+
+Lgh
+
+Insättning		—	—	100 000,00 SEK	
+2026-08-03	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−13 364,25 SEK	
+2026-08-03	
+
+Lgh
+
+Insättning		—	—	21 700,00 SEK	
+2026-07-31	
+
+Lgh
+
+Utlåningsränta		—	—	−8 335,68 SEK	"#;
+        let expected_avanza_result_two = r#""Date","Payee","Memo","Outflow","Inflow"
+"2026-08-27","Överföring till ISK/KF-depån","A short memo","9999.52",""
+"2026-08-26","Överföring till ISK/KF-depån","A short memo","9999.95",""
+"2026-08-25","Överföring till ISK/KF-depån","A short memo","9999.69",""
+"2026-08-24","Överföring till ISK/KF-depån","A short memo","9999.97",""
+"2026-08-21","Överföring till ISK/KF-depån","A short memo","9999.79",""
+"2026-08-20","Överföring till ISK/KF-depån","A short memo","9999.94",""
+"2026-08-17","Överföring till ISK/KF-depån","A short memo","100000.02",""
+"2026-08-17","Insättning","A short memo","","100000.00"
+"2026-08-03","Överföring till ISK/KF-depån","A short memo","13364.25",""
+"2026-08-03","Insättning","A short memo","","21700.00"
+"2026-07-31","Utlåningsränta","A short memo","8335.68","""#;
+        let avanza_text_three = r#"Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,52 SEK	
+2026-08-26	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,95 SEK	
+2026-08-25	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,69 SEK	
+2026-08-24	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,97 SEK	
+2026-08-21	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,79 SEK	
+2026-08-20	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,94 SEK	
+2026-08-17	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−100 000,02 SEK	
+2026-08-17	
+
+Lgh
+
+Insättning		—	—	100 000,00 SEK	
+2026-08-03	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−13 364,25 SEK	
+2026-08-03	
+
+Lgh
+
+Insättning		—	—	21 700,00 SEK	
+2026-07-31	
+
+Lgh
+
+Utlåningsränta		—	"#;
+        let expected_avanza_result_three = r#""Date","Payee","Memo","Outflow","Inflow"
+"2026-08-26","Överföring till ISK/KF-depån","A short memo","9999.95",""
+"2026-08-25","Överföring till ISK/KF-depån","A short memo","9999.69",""
+"2026-08-24","Överföring till ISK/KF-depån","A short memo","9999.97",""
+"2026-08-21","Överföring till ISK/KF-depån","A short memo","9999.79",""
+"2026-08-20","Överföring till ISK/KF-depån","A short memo","9999.94",""
+"2026-08-17","Överföring till ISK/KF-depån","A short memo","100000.02",""
+"2026-08-17","Insättning","A short memo","","100000.00"
+"2026-08-03","Överföring till ISK/KF-depån","A short memo","13364.25",""
+"2026-08-03","Insättning","A short memo","","21700.00""#;
+
+        let avanza_parser = Parser::Avanza;
+
+        let avanza_parsed_text_one = avanza_parser
+            .parse(avanza_text_one, Some("A short memo"))
+            .unwrap();
+        let avanza_parsed_text_two = avanza_parser
+            .parse(avanza_text_two, Some("A short memo"))
+            .unwrap();
+        let avanza_parsed_text_three = avanza_parser
+            .parse(avanza_text_three, Some("A short memo"))
+            .unwrap();
+        
+        assert_eq!(avanza_parsed_text_one, expected_avanza_result_one);
+        assert_eq!(avanza_parsed_text_two, expected_avanza_result_two);
+        assert_eq!(avanza_parsed_text_three, expected_avanza_result_three);
+
+        Ok(())
+    }
+
+    #[test]
+    fn avanza_parsing_works_without_memo() -> Result<(), String> {
+        let avanza_text_one = r#"Genomförda transaktioner
+
+Datum
+
+Konto
+
+Transaktionstyp
+
+Värdepapper/Beskrivning
+
+Antal
+
+Kurs
+
+Belopp
+Nota	Mer
+2026-08-28	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,97 SEK	
+2026-08-27	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,52 SEK	
+2026-08-26	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,95 SEK	
+2026-08-25	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,69 SEK	
+2026-08-24	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,97 SEK	
+2026-08-21	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,79 SEK	
+2026-08-20	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,94 SEK	
+2026-08-17	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−100 000,02 SEK	
+2026-08-17	
+
+Lgh
+
+Insättning		—	—	100 000,00 SEK	
+2026-08-03	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−13 364,25 SEK	
+2026-08-03	
+
+Lgh
+
+Insättning		—	—	21 700,00 SEK	
+2026-07-31	
+
+Lgh
+
+Utlåningsränta		—	—	−8 335,68 SEK	
+2026-07-07	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−21 837,26 SEK	
+"#;
+        let expected_avanza_result_one = r#""Date","Payee","Memo","Outflow","Inflow"
+"2026-08-28","Överföring till ISK/KF-depån","","9999.97",""
+"2026-08-27","Överföring till ISK/KF-depån","","9999.52",""
+"2026-08-26","Överföring till ISK/KF-depån","","9999.95",""
+"2026-08-25","Överföring till ISK/KF-depån","","9999.69",""
+"2026-08-24","Överföring till ISK/KF-depån","","9999.97",""
+"2026-08-21","Överföring till ISK/KF-depån","","9999.79",""
+"2026-08-20","Överföring till ISK/KF-depån","","9999.94",""
+"2026-08-17","Överföring till ISK/KF-depån","","100000.02",""
+"2026-08-17","Insättning","","","100000.00"
+"2026-08-03","Överföring till ISK/KF-depån","","13364.25",""
+"2026-08-03","Insättning","","","21700.00"
+"2026-07-31","Utlåningsränta","","8335.68",""
+"2026-07-07","Överföring till ISK/KF-depån","","21837.26","""#;
+        let avanza_text_two = r#"2026-08-27	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,52 SEK	
+2026-08-26	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,95 SEK	
+2026-08-25	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,69 SEK	
+2026-08-24	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,97 SEK	
+2026-08-21	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,79 SEK	
+2026-08-20	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,94 SEK	
+2026-08-17	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−100 000,02 SEK	
+2026-08-17	
+
+Lgh
+
+Insättning		—	—	100 000,00 SEK	
+2026-08-03	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−13 364,25 SEK	
+2026-08-03	
+
+Lgh
+
+Insättning		—	—	21 700,00 SEK	
+2026-07-31	
+
+Lgh
+
+Utlåningsränta		—	—	−8 335,68 SEK	"#;
+        let expected_avanza_result_two = r#""Date","Payee","Memo","Outflow","Inflow"
+"2026-08-27","Överföring till ISK/KF-depån","","9999.52",""
+"2026-08-26","Överföring till ISK/KF-depån","","9999.95",""
+"2026-08-25","Överföring till ISK/KF-depån","","9999.69",""
+"2026-08-24","Överföring till ISK/KF-depån","","9999.97",""
+"2026-08-21","Överföring till ISK/KF-depån","","9999.79",""
+"2026-08-20","Överföring till ISK/KF-depån","","9999.94",""
+"2026-08-17","Överföring till ISK/KF-depån","","100000.02",""
+"2026-08-17","Insättning","","","100000.00"
+"2026-08-03","Överföring till ISK/KF-depån","","13364.25",""
+"2026-08-03","Insättning","","","21700.00"
+"2026-07-31","Utlåningsränta","","8335.68","""#;
+        let avanza_text_three = r#"Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,52 SEK	
+2026-08-26	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,95 SEK	
+2026-08-25	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,69 SEK	
+2026-08-24	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,97 SEK	
+2026-08-21	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,79 SEK	
+2026-08-20	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−9 999,94 SEK	
+2026-08-17	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−100 000,02 SEK	
+2026-08-17	
+
+Lgh
+
+Insättning		—	—	100 000,00 SEK	
+2026-08-03	
+
+Lgh
+
+Överföring till ISK/KF-depån	Överföring till ISK/KF-depån	—	—	−13 364,25 SEK	
+2026-08-03	
+
+Lgh
+
+Insättning		—	—	21 700,00 SEK	
+2026-07-31	
+
+Lgh
+
+Utlåningsränta		—	"#;
+        let expected_avanza_result_three = r#""Date","Payee","Memo","Outflow","Inflow"
+"2026-08-26","Överföring till ISK/KF-depån","","9999.95",""
+"2026-08-25","Överföring till ISK/KF-depån","","9999.69",""
+"2026-08-24","Överföring till ISK/KF-depån","","9999.97",""
+"2026-08-21","Överföring till ISK/KF-depån","","9999.79",""
+"2026-08-20","Överföring till ISK/KF-depån","","9999.94",""
+"2026-08-17","Överföring till ISK/KF-depån","","100000.02",""
+"2026-08-17","Insättning","","","100000.00"
+"2026-08-03","Överföring till ISK/KF-depån","","13364.25",""
+"2026-08-03","Insättning","","","21700.00""#;
+
+        let avanza_parser = Parser::Avanza;
+
+        let avanza_parsed_text_one = avanza_parser
+            .parse(avanza_text_one, None)
+            .unwrap();
+        let avanza_parsed_text_two = avanza_parser
+            .parse(avanza_text_two, None)
+            .unwrap();
+        let avanza_parsed_text_three = avanza_parser
+            .parse(avanza_text_three, None)
+            .unwrap();
+        
+        assert_eq!(avanza_parsed_text_one, expected_avanza_result_one);
+        assert_eq!(avanza_parsed_text_two, expected_avanza_result_two);
+        assert_eq!(avanza_parsed_text_three, expected_avanza_result_three);
 
         Ok(())
     }

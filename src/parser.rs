@@ -11,6 +11,8 @@ use crate::*;
 pub enum Parser {
     /// Parses data copied and pasted from the Swedish branch of Danske Bank’s (Danske Bank A/S, Danmark, Sverige Filial) Hembanken’s web interface.
     DanskeBank,
+    /// Parses data copied from the Avanza Bank Holding web interface.
+    Avanza,
 }
 
 impl Parser {
@@ -18,6 +20,7 @@ impl Parser {
     fn regex(&self) -> Result<regex::Regex, regex::Error> {
         match self {
             Self::DanskeBank => regex::Regex::new(r"(?m)^(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})[ \t]*\r?\n[ \t]*(?<merchant>[^\r\n]+?)(?:[ \t]+\){4})?[ \t]*\r?\n[ \t]*(?<amount>[+-]?(?:\d+|\d{1,3}(?:\.\d{3})+),\d{2})"),
+            Self::Avanza => regex::Regex::new(r"(?m)^(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})[ \t]*\r?\n(?:[ \t]*\r?\n)*[ \t]*\S[^\r\n]*\r?\n(?:[ \t]*\r?\n)*[ \t]*(?<merchant>[^\t\r\n]+)\t[^\t\r\n]*\t[^\t\r\n]*\t[^\t\r\n]*\t(?<amount>[+−]?(?:\d+|\d{1,3}(?: \d{3})+),\d{2}) SEK"),
         }
     }
 
@@ -55,6 +58,8 @@ impl Parser {
             let day = &capture["day"].parse::<u8>()?;
             let merchant = &capture["merchant"];
             let amount = &capture["amount"]
+                .replace("−", "-")
+                .replace(" ", "")
                 .replace(".", "")
                 .replace(",", ".")
                 .parse::<f64>()?;

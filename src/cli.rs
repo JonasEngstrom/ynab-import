@@ -37,6 +37,7 @@ pub fn run() -> () {
 
     let parser = match arguments.bank_name.as_str() {
         "danske-bank" | "db" => parser::Parser::DanskeBank,
+        "avanza" | "a" => parser::Parser::Avanza,
         _ => {
             eprintln!("{}", messages::INVALID_PARSER);
             exit(1);
